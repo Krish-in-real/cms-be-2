@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
+model Account {
   id         Int     @id @default(autoincrement())
   firstName  String
   lastName   String
@@ -25,67 +25,67 @@ model Participant {
   createdAt          DateTime              @default(now())
   updatedAt          DateTime              @updatedAt
 
-  enrollments        Enrollment[]
-  submissions        Submission[]
-  feedbacks          Feedback[]            @relation("FeedbackEvaluator")
-  mentorshipsAsMentor MentorshipProgram[]  @relation("Mentor")
-  mentorshipsAsMentee MentorshipProgram[]  @relation("Mentee")
+  eventRegistrations Enrollment[]
+  eventSubmissions   Submission[]
+  feedbacksGiven     Feedback[]            @relation("FeedbackEvaluator")
+  mentorshipsAsMentor Mentorship[]  @relation("Mentor")
+  mentorshipsAsMentee Mentorship[]  @relation("Mentee")
 }
 
-model Event {
+model Conference {
   eventId       Int       @id @default(autoincrement())
-  name          String    @db.VarChar(100)
-  description   String?
-  startDate     DateTime
-  endDate       DateTime
-  location      String?   @db.VarChar(255)
+  eventName     String    @db.VarChar(100)
+  eventDescription   String?
+  startDateTime     DateTime
+  endDateTime       DateTime
+  eventLocation      String?   @db.VarChar(255)
   meetingLink   String?   @db.VarChar(255)
-  recordingLink  String?  @db.VarChar(255)
+  eventRecordingLink  String?  @db.VarChar(255)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  enrollments   Enrollment[]
-  submissions   Submission[]
-  schedules     Schedule[]
+  eventRegistrations   Enrollment[]
+  eventSubmissions   Submission[]
+  eventSchedules     Schedule[]
 }
 
 model Enrollment {
   enrollmentId    Int           @id @default(autoincrement())
   participantId   Int
   eventId         Int
-  registrationDate DateTime
-  ticketType      TicketType
+  registrationDateTime DateTime
+  ticketCategory      TicketType
   paymentStatus   PaymentStatus @default(pending)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   participant     Participant @relation(fields: [participantId], references: [participantId])
-  event           Event       @relation(fields: [eventId], references: [eventId])
+  event           Conference       @relation(fields: [eventId], references: [eventId])
 }
 
 model Submission {
   submissionId    Int         @id @default(autoincrement())
   eventId         Int
   participantId   Int
-  title           String      @db.VarChar(255)
-  abstract        String?
-  submissionDate  DateTime
-  status          SubmissionStatus @default(submitted)
+  submissionTitle           String      @db.VarChar(255)
+  submissionAbstract        String?
+  submissionDateTime  DateTime
+  submissionStatus          SubmissionStatus @default(submitted)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  event           Event       @relation(fields: [eventId], references: [eventId])
+  event           Conference       @relation(fields: [eventId], references: [eventId])
   participant     Participant @relation(fields: [participantId], references: [participantId])
-  feedbacks       Feedback[]
+  submissionFeedbacks       Feedback[]
 }
 
 model Feedback {
   feedbackId    Int         @id @default(autoincrement())
   submissionId  Int
   evaluatorId   Int
-  comments      String?
-  rating        Int          
-  reviewDate    DateTime
+  feedbackComments      String?
+  feedbackRating        Int          
+  reviewDateTime    DateTime
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -96,21 +96,21 @@ model Feedback {
 model Schedule {
   scheduleId    Int         @id @default(autoincrement())
   eventId       Int
-  time          DateTime
-  location      String?     @db.VarChar(255)
+  scheduleTime          DateTime
+  scheduleLocation      String?     @db.VarChar(255)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  event         Event       @relation(fields: [eventId], references: [eventId])
+  event         Conference       @relation(fields: [eventId], references: [eventId])
 }
 
-model MentorshipProgram {
-  mentorshipId Int            @id @default(autoincrement())
+model Mentorship {
+  mentorshipProgramId Int            @id @default(autoincrement())
   mentorId     Int
   menteeId     Int
-  startDate    DateTime
-  endDate      DateTime?
-  status       MentorshipStatus @default(active)
+  programStartDate    DateTime
+  programEndDate      DateTime?
+  programStatus       MentorshipStatus @default(active)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

@@ -1,5 +1,4 @@
 import withCors from "@/utils/cors";
-import { listItem } from "../../../utils/crud";
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 
@@ -8,8 +7,8 @@ const prisma = new PrismaClient();
 async function handler(req, res) {
   const method = req.method;
   const tableName = "submission";
-  if (req.method === "GET") {
-    // const { participantToken } = req.headers;
+
+  if (method === "GET") {
     const participantToken = req.headers.authorization?.split(" ")[1];
 
     if (!participantToken) {
@@ -20,36 +19,38 @@ async function handler(req, res) {
       const decoded = jwt.verify(participantToken, process.env.JWT_SECRET_KEY);
 
       const email = decoded.email;
-      console.log(decoded)
 
+      // Fetch participant details using email
       const participant = await prisma.participant.findUnique({
         where: {
           email: email,
-        }
+        },
       });
+
       if (!participant) {
         return res.status(404).json({ error: "Participant not found" });
       }
+
       const participantId = participant.participantId;
-      console.log(participantId)
-      const submission = await prisma.submission.findMany({
+
+      // Fetch all submissions except the user's own submission
+      const submissions = await prisma.submission.findMany({
         where: {
           participantId: {
-            not: participantId
+            not: participantId,  // Exclude submissions from the current user
           },
-        }
+        },
       });
 
-      return res.status(200).json(submission);
+      return res.status(200).json(submissions);
     } catch (error) {
-      console.error(error);
+      console.error("Error in fetching submissions:", error);
       return res.status(401).json({ error: 'Invalid participant token or authentication failed' });
     }
   }
-  
-  return res.status(405).end(`Method ${method} Not Allowed`);
+
+  // Return method not allowed if the method is not GET
+  return res.status(405).json({ error: `Method ${method} Not Allowed` });
 }
 
 export default withCors(handler);
-
-//peer review fetch all the submission papers except the user paper user will be ftched via token from the frontend
